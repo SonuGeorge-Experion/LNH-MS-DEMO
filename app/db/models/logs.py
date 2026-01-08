@@ -1,6 +1,6 @@
 import datetime
+import decimal
 from typing import Optional, Text
-from unicodedata import decimal
 
 from sqlalchemy import (
     Boolean,

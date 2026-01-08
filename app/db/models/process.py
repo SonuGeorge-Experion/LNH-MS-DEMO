@@ -1,12 +1,13 @@
 import datetime
+import decimal
 from typing import Optional, Text
-from unicodedata import decimal
 
 from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKeyConstraint,
     Integer,
+    Numeric,
     PrimaryKeyConstraint,
     String,
     UniqueConstraint,
