@@ -31,10 +31,10 @@ class ProductionPlans(Base):
     )
 
     plan_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    tissue_id: Mapped[Optional[int]] = mapped_column(Integer)
-    product_id: Mapped[Optional[int]] = mapped_column(Integer)
-    planned_quantity: Mapped[Optional[int]] = mapped_column(Integer)
-    status: Mapped[Optional[str]] = mapped_column(
+    tissue_id: Mapped[int] = mapped_column(Integer)
+    product_id: Mapped[int] = mapped_column(Integer)
+    planned_quantity: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(
         Enum("draft", "approved", "executing", name="plan_status_enum"),
         server_default=text("'draft'::plan_status_enum"),
     )
