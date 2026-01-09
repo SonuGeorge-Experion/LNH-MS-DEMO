@@ -10,6 +10,7 @@ from sqlalchemy import (
     Numeric,
     PrimaryKeyConstraint,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -29,11 +30,11 @@ class Processes(Base):
         ForeignKeyConstraint(
             ["plan_id"], ["production_plans.plan_id"], name="processes_plan_id_fkey"
         ),
-        ForeignKeyConstraint(
-            ["room_assignment_id"],
-            ["room_assignments.assignment_id"],
-            name="processes_room_assignment_id_fkey",
-        ),
+        # ForeignKeyConstraint(
+        #     ["room_assignment_id"],
+        #     ["room_assignments.assignment_id"],
+        #     name="processes_room_assignment_id_fkey",
+        # ),
         ForeignKeyConstraint(
             ["tissue_id"], ["tissues.tissue_id"], name="processes_tissue_id_fkey"
         ),
@@ -47,7 +48,7 @@ class Processes(Base):
 
     process_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     plan_id: Mapped[Optional[int]] = mapped_column(Integer)
-    room_assignment_id: Mapped[Optional[int]] = mapped_column(Integer)
+    # room_assignment_id: Mapped[Optional[int]] = mapped_column(Integer)
     workflow_id: Mapped[Optional[int]] = mapped_column(Integer)
     donor_id: Mapped[Optional[int]] = mapped_column(Integer)
     tissue_id: Mapped[Optional[int]] = mapped_column(Integer)
