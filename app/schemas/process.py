@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WorkflowSchema(BaseModel):
@@ -12,8 +12,7 @@ class WorkflowSchema(BaseModel):
     version: Optional[str] = Field(None, max_length=10)
     is_active: Optional[bool] = True
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowStepsSchema(BaseModel):
@@ -32,5 +31,4 @@ class WorkflowStepsSchema(BaseModel):
     start_time: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

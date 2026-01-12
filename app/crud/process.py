@@ -69,7 +69,7 @@ async def create_workflow_steps(request: WorkflowStepsSchema, db: AsyncSession):
 
 
 async def get_process_based_workflow(process_id: int, db: AsyncSession):
-    print("inside ----------------- workflow")
+    print("process_id::", process_id)
 
     step_element = func.jsonb_array_elements(
         Workflows.template_json["layout_sections"]["steps_config"]["steps"]
@@ -133,7 +133,7 @@ async def get_process_based_workflow(process_id: int, db: AsyncSession):
         .select_from(Processes)
         .join(Workflows, Processes.workflow_id == Workflows.workflow_id)
         .join(step_element, true())
-        .where(Processes.process_id == 1)
+        .where(Processes.process_id == process_id)
         .cte("template_steps")
     )
 
@@ -147,7 +147,7 @@ async def get_process_based_workflow(process_id: int, db: AsyncSession):
             ),
             WorkflowSteps.initials,
             WorkflowSteps.actual_duration,
-            WorkflowSteps.step_num,
+            WorkflowSteps.step_data,
         )
         .select_from(template_steps)
         .outerjoin(
@@ -159,9 +159,4 @@ async def get_process_based_workflow(process_id: int, db: AsyncSession):
     )
 
     result = await db.execute(stmt)
-    print("result type ---------------------", type(result))
-    # print(result)
-    # for r in result:
-    #     print(r)
     return result.mappings().all()
-    # return result.mappings().all()

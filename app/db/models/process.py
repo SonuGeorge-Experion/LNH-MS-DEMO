@@ -209,6 +209,9 @@ class WorkflowSteps(Base):
     )
     deviation_notes: Mapped[Optional[str]] = mapped_column(Text)
     start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    step_data: Mapped[Optional[dict]] = mapped_column(
+        JSONB, server_default=text("'{}'::jsonb")
+    )
     completed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
     # process: Mapped[Optional["Processes"]] = relationship(

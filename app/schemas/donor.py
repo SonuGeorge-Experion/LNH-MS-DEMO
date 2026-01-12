@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class DonorSchema(BaseModel):
@@ -15,5 +15,4 @@ class DonorSchema(BaseModel):
         None, description="Additional factors related to the donor"
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
