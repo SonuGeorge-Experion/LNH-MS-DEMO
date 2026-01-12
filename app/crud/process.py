@@ -15,6 +15,13 @@ async def create_workflow(request: WorkflowSchema, db: AsyncSession):
 
 
 async def create_workflow_steps(request: WorkflowStepsSchema, db: AsyncSession):
+    # Validate foreign key: process_id must exist in Processes
+    result = await db.execute(
+        select(Processes.process_id).where(Processes.process_id == request.process_id)
+    )
+    if result.scalar_one_or_none() is None:
+        raise ValueError(f"Invalid process_id {request.process_id}: does not exist")
+
     workflow_steps = WorkflowSteps(**request.model_dump())
     db.add(workflow_steps)
     await db.commit()

@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class WorkflowSchema(BaseModel):
@@ -30,5 +30,37 @@ class WorkflowStepsSchema(BaseModel):
     deviation_notes: Optional[str] = None
     start_time: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+
+    # @field_validator("start_time", "completed_at", mode="before")
+    # @classmethod
+    # def parse_iso_datetime(cls, v):
+    #     if v is None or isinstance(v, datetime):
+    #         return v
+    #     if isinstance(v, str):
+    #         s = v.strip()
+    #         # Support trailing 'Z' for UTC
+    #         if s.endswith("Z"):
+    #             s = s[:-1] + "+00:00"
+    #         try:
+    #             return datetime.fromisoformat(s)
+    #         except Exception:
+    #             raise ValueError(
+    #                 "Invalid datetime format. Expected ISO 8601, e.g., 2024-01-31T13:45:00 or 2024-01-31T13:45:00+00:00"
+    #             )
+    #     raise ValueError("Invalid type for datetime field")
+
+    @model_validator(mode="after")
+    def validate_times(self):
+        # completed_at requires start_time
+        if self.completed_at is not None and self.start_time is None:
+            raise ValueError("completed_at requires start_time to be set")
+        # completed_at must be >= start_time when both are provided
+        if (
+            self.start_time is not None
+            and self.completed_at is not None
+            and self.completed_at < self.start_time
+        ):
+            raise ValueError("completed_at must be greater than or equal to start_time")
+        return self
 
     model_config = ConfigDict(from_attributes=True)
