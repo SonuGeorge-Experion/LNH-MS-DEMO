@@ -19,3 +19,13 @@ class TissuesSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ProductsSchema(BaseModel):
+    product_id: int = Field(None, description="Unique identifier for product")
+    name: str = Field(None, description="Name of the product", max_length=100)
+    category_id: Optional[int] = Field(None, description="Category of the product")
+    base_dimensions: Optional[dict] = Field(None, description="Base dimensions JSON")
+    is_active: Optional[bool] = Field(True, description="Whether the product is active")
+
+    class Config:
+        from_attributes = True
