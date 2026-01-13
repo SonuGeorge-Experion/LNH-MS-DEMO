@@ -9,3 +9,13 @@ class TissueCategorySchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TissuesSchema(BaseModel):
+    tissue_id: int = Field(None, description="Unique identifier for tissue")
+    donor_id: Optional[int] = Field(None, description="Identifier for the donor")
+    category_id: Optional[int] = Field(None, description="Category of the tissue")
+    bundle_details: Optional[dict] = Field(None, description="Bundle details of the tissue")
+    status: Optional[str] = Field(None, description="Status of the tissue")
+
+    class Config:
+        from_attributes = True
