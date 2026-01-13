@@ -6,9 +6,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import process as process_crud
 from app.db.async_session import get_async_db
-from app.schemas.process import WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
 
 router = APIRouter()
+
+
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_process(
+    request: ProcessSchema,
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        process = await process_crud.create_process(request, db)
+        return {"resp": f"Process {process.process_id} created"}
+    except IntegrityError as ie:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid process request. {ie}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
 
 
 @router.post(
@@ -40,8 +63,24 @@ async def populate_workflow_data(
     request: WorkflowStepsSchema,
     db: AsyncSession = Depends(get_async_db),
 ):
-    workflow_steps = await process_crud.create_workflow_steps(request, db)
-    return {"resp": f"Workflow steps created for process {workflow_steps.step_id}"}
+    try:
+        workflow_steps = await process_crud.create_workflow_steps(request, db)
+        return {"resp": f"Workflow steps created for process {workflow_steps.step_id}"}
+    except ValueError as ve:
+        # Raised when the provided process_id does not exist
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+    except IntegrityError as ie:
+        # Any constraint violation while inserting workflow steps
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid workflow steps request. {ie}",
+        )
+    except Exception as e:
+        # Fallback for unexpected errors
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
 
 
 @router.get(

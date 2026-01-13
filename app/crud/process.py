@@ -3,7 +3,15 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.process import Processes, Workflows, WorkflowSteps
-from app.schemas.process import WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
+
+
+async def create_process(request: ProcessSchema, db: AsyncSession):
+    process = Processes(**request.model_dump())
+    db.add(process)
+    await db.commit()
+    await db.refresh(process)
+    return process
 
 
 async def create_workflow(request: WorkflowSchema, db: AsyncSession):
@@ -15,6 +23,13 @@ async def create_workflow(request: WorkflowSchema, db: AsyncSession):
 
 
 async def create_workflow_steps(request: WorkflowStepsSchema, db: AsyncSession):
+    # Validate foreign key: process_id must exist in Processes
+    result = await db.execute(
+        select(Processes.process_id).where(Processes.process_id == request.process_id)
+    )
+    if result.scalar_one_or_none() is None:
+        raise ValueError(f"Invalid process_id {request.process_id}: does not exist")
+
     workflow_steps = WorkflowSteps(**request.model_dump())
     db.add(workflow_steps)
     await db.commit()

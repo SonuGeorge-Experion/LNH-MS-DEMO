@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional
 
 from sqlalchemy import (
@@ -69,10 +70,10 @@ class AssignmentTechnicians(Base):
     assign_tech_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     assignment_id: Mapped[Optional[int]] = mapped_column(Integer)
     technician_id: Mapped[Optional[int]] = mapped_column(Integer)
+    assigned_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, server_default=text("CURRENT_TIMESTAMP")
+    )
+    unassigned_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
-    # assignment: Mapped[Optional["RoomAssignments"]] = relationship(
-    #     "RoomAssignments", back_populates="assignment_technicians"
-    # )
-    # technician: Mapped[Optional["Technicians"]] = relationship(
-    #     "Technicians", back_populates="assignment_technicians"
-    # )
+    # assignment: Mapped[Optional['RoomAssignments']] = relationship('RoomAssignments', back_populates='assignment_technicians')
+    # technician: Mapped[Optional['Technicians']] = relationship('Technicians', back_populates='assignment_technicians')
