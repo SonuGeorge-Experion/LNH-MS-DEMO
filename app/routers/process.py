@@ -6,9 +6,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import process as process_crud
 from app.db.async_session import get_async_db
-from app.schemas.process import WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
 
 router = APIRouter()
+
+
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_process(
+    request: ProcessSchema,
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        process = await process_crud.create_process(request, db)
+        return {"resp": f"Process {process.process_id} created"}
+    except IntegrityError as ie:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid process request. {ie}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
 
 
 @router.post(

@@ -3,7 +3,15 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.process import Processes, Workflows, WorkflowSteps
-from app.schemas.process import WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
+
+
+async def create_process(request: ProcessSchema, db: AsyncSession):
+    process = Processes(**request.model_dump())
+    db.add(process)
+    await db.commit()
+    await db.refresh(process)
+    return process
 
 
 async def create_workflow(request: WorkflowSchema, db: AsyncSession):

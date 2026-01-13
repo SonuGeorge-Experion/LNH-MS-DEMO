@@ -1,8 +1,20 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+class ProcessSchema(BaseModel):
+    plan_id: Optional[int] = None
+    workflow_id: Optional[int] = None
+    donor_id: Optional[int] = None
+    tissue_id: Optional[int] = None
+    status: Optional[Literal["planned", "in_progress", "completed", "deviated"]] = "planned"
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowSchema(BaseModel):

@@ -89,6 +89,11 @@ class RoomAssignments(Base):
         Enum("pending", "active", "completed", name="assignment_status_enum"),
         server_default=text("'pending'::assignment_status_enum"),
     )
+    target_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    queue_sequence: Mapped[Optional[int]] = mapped_column(Integer)
+    download_status: Mapped[Optional[str]] = mapped_column(
+        String(20), server_default=text("'pending'::character varying")
+    )
 
     # processes: Mapped[list['Processes']] = relationship('Processes', foreign_keys='[Processes.room_assignment_id]', back_populates='room_assignment')
     # process: Mapped[Optional['Processes']] = relationship('Processes', foreign_keys=[process_id], back_populates='room_assignments')
