@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from app.db.models.products import TissueCategories, Tissues
-from app.schemas.products import TissueCategorySchema, TissuesSchema
+from app.db.models.products import TissueCategories, Tissues, Products
+from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema
 
 async def add_tissue_category(db: AsyncSession, request:TissueCategorySchema):
     new_tissue_category = TissueCategories(
@@ -34,3 +34,23 @@ async def add_tissue(db: AsyncSession, request: TissuesSchema):
 
     await db.refresh(new_tissue)
     return new_tissue
+
+async def add_product(db: AsyncSession, request: ProductsSchema):
+    new_product = Products(
+        product_id=request.product_id,
+        name=request.name,
+        category_id=request.category_id,
+        base_dimensions=request.base_dimensions,
+        is_active=request.is_active,
+    )
+
+    db.add(new_product)
+    try:
+        await db.commit()
+    except IntegrityError as e:
+        await db.rollback()
+        msg = "Failed to add product. Ensure category_id references an existing tissue category and name/PK are valid."
+        raise ValueError(msg) from e
+
+    await db.refresh(new_product)
+    return new_product
