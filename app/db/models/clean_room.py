@@ -11,7 +11,7 @@ from sqlalchemy import (
     String,
     Time,
     UniqueConstraint,
-    text,
+    text, Date,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
