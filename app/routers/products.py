@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
+# from app.crud.products import Tissues as crud_tissues
 from app.crud import products as product_crud
 from app.db.async_session import get_async_db
-from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema
-from typing import List
+from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema, ListTissuesSchema, TissueStatus
+from typing import List, Optional, Annotated
+from datetime import datetime
+
 router = APIRouter()
 
 
@@ -80,3 +82,40 @@ async def add_product(
         raise HTTPException( status_code=status.HTTP_409_CONFLICT, detail="Integrity constraint violated while creating product.", ) 
     except Exception as e: 
         raise HTTPException( status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Error Occurred. Please try later. {e}", )
+    
+@router.get(
+        "/", 
+        response_model=List[ListTissuesSchema],
+        status_code=status.HTTP_200_OK
+)
+async def read_tissues(
+    # Multi-select filters (Checkboxes)
+    donor_ids: Optional[List[int]] = Query(None, description="Select multiple Donor IDs"),
+    statuses: Optional[List[TissueStatus]] = Query([], description="Select multiple statuses"),
+    
+    # Search and Date Range
+    donor_search: Optional[str] = Query(None, description="Search by Donor ID string"),
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1),
+    db: AsyncSession = Depends(get_async_db)
+):
+    try:
+        tissues = await product_crud.get_tissues_list(
+            db, 
+            donor_ids=donor_ids, 
+            statuses=statuses, 
+            donor_search=donor_search,
+            start_date=start_date,
+            end_date=end_date,
+            skip=skip,
+            limit=limit
+        )
+        return tissues
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching tissues: {str(e)}"
+        )

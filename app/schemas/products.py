@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from enum import Enum
 
 class TissueCategorySchema(BaseModel):
     category_id: int = Field(None, description="Unique identifier for category")
@@ -9,6 +10,11 @@ class TissueCategorySchema(BaseModel):
 
     class Config:
         from_attributes = True
+class TissueStatus(str, Enum):
+    collected = "collected"
+    planned = "planned"
+    processed = "processed"
+    discarded = "discarded"
 
 class TissuesSchema(BaseModel):
     tissue_id: int = Field(None, description="Unique identifier for tissue")
@@ -26,6 +32,14 @@ class ProductsSchema(BaseModel):
     category_id: Optional[int] = Field(None, description="Category of the product")
     base_dimensions: Optional[dict] = Field(None, description="Base dimensions JSON")
     is_active: Optional[bool] = Field(True, description="Whether the product is active")
+
+    class Config:
+        from_attributes = True
+
+class ListTissuesSchema (TissuesSchema):
+    donor_name: Optional[str]
+    znumber: Optional[int]
+    category_name: Optional[str]
 
     class Config:
         from_attributes = True
