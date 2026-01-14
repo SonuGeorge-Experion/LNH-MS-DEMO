@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.routers import donor, process, production_plan, production_process, products
+from app.routers import donor, process, production_plan, production_process, products, resources
 
 
 @asynccontextmanager
@@ -22,3 +22,4 @@ app.include_router(
     production_process.router, prefix="/production-process", tags=["Production Process"]
 )
 app.include_router(products.router, prefix="/products", tags=["Products"])
+app.include_router(resources.router, prefix="/resources", tags=["Resources"])
