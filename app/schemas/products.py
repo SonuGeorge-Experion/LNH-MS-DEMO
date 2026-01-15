@@ -43,3 +43,9 @@ class ListTissuesSchema (TissuesSchema):
 
     class Config:
         from_attributes = True
+
+class ListProductsSchema (ProductsSchema):
+    category_name: Optional[str]
+
+    class Config:
+        from_attributes = True
