@@ -21,4 +21,4 @@ app.include_router(
     production_process.router, prefix="/production-process", tags=["Production Process"]
 )
 app.include_router(products.router, prefix="/products", tags=["Products"])
-app.include_router(resources.router, prefix="/resources", tags=["Resources"])
+app.include_router(resources.router, prefix="/api/v1/resources", tags=["Resources"])
