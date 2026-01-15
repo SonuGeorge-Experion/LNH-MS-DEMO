@@ -21,3 +21,4 @@ app.include_router(products.router, prefix="/tissue_category", tags=["Tissue_Cat
 app.include_router(
     production_process.router, prefix="/production-process", tags=["Production Process"]
 )
+app.include_router(products.router, prefix="/products", tags=["Products"])
