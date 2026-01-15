@@ -1,8 +1,11 @@
 from sqlalchemy import Integer, case, cast, func, select, true
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased, joinedload, load_only, selectinload
 
+from app.db.models.donor import Donors
 from app.db.models.process import Processes, Workflows, WorkflowSteps
+from app.db.models.products import Tissues
 from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
 
 
@@ -175,3 +178,100 @@ async def get_process_based_workflow(process_id: int, db: AsyncSession):
 
     result = await db.execute(stmt)
     return result.mappings().all()
+
+
+# async def get_process_template(db: AsyncSession):
+
+#     # workflow id from process using donor id
+#     # template from work flow
+
+#     # Aliases (optional, but mirrors your SQL table aliases t, p, w)
+
+#     p = aliased(Processes)
+#     w = aliased(Workflows)
+
+#     room_assigned_donor_dict = {}
+
+#     stmt = select(p.tissue_id, p.donor_id, w.template_json).join(
+#         w, p.workflow_id == w.workflow_id
+#     )
+
+#     results = await db.execute(stmt)
+
+#     process_data = results.mappings().all()
+
+#     for data in process_data:
+#         data_dict = dict(data)
+#         tissue_id = data.get("tissue_id")
+#         donor_id = data.get("donor_id")
+#         template_json = data.get("template_json", [])
+
+#         if room_assigned_donor_dict.get(donor_id, []):
+#             donor_dict = {"tissue_id": tissue_id, template_json:template_json}
+#             room_assigned_donor_dict[donor_id] =
+
+#         print("donor id ------", donor_id)
+#         template_json = data.get("template_json", [])
+#         # steps = template_json["layout_sections"]["steps_config"]["steps"]
+
+#     #     print("tissue id", data.get("tissue_id"))
+#     # process_data[1]["check"] = "check -------"
+#     return process_data
+
+
+stmt = select(Donors).options(
+    load_only(Donors.donor_id, Donors.znumber),
+    selectinload(Donors.processes).options(
+        load_only(Processes.process_id, Processes.workflow_id),
+        joinedload(Processes.workflow).options(
+            load_only(Workflows.workflow_id, Workflows.template_json)
+        ),
+        selectinload(Processes.workflow_steps).options(
+            load_only(WorkflowSteps.step_id, WorkflowSteps.process_id)
+        ),
+    ),
+)
+
+
+async def get_process_template(db: AsyncSession):
+
+    # d = aliased(Donors)
+    # p = aliased(Processes)
+
+    # stmt = select(
+    #     d.donor_id, d.znumber, d.name, p.process_id, p.tissue_id, p.workflow_id
+    # ).join(p, d.donor_id == p.donor_id)
+    # results = await db.execute(stmt)
+
+    # stmt = select(Donors).options(
+    #     load_only(Donors.donor_id, Donors.znumber),
+    #     selectinload(Donors.processes).joinedload(Processes.workflow),
+    #     selectinload(Donors.processes).selectinload(Processes.workflow_steps),
+    # )  # assuming you defined relationship
+
+    stmt = select(Donors).options(
+        load_only(Donors.donor_id, Donors.znumber),
+        selectinload(Donors.processes).options(
+            load_only(Processes.process_id, Processes.workflow_id),
+            joinedload(Processes.workflow).options(
+                load_only(Workflows.workflow_id, Workflows.template_json)
+            ),
+            selectinload(Processes.workflow_steps),
+            # .options(
+            #     load_only(WorkflowSteps.step_id, WorkflowSteps.process_id)
+            # ),
+        ),
+    )
+    results = await db.execute(stmt)
+    donors = results.scalars().all()
+
+    # for donor in donors:
+    #     for process in donor.processes:
+    #         wf = process.workflow
+    #         allowed = wf.template_json.get("columns", [])
+    #         # now build a second query for WorkflowSteps
+    #         cols = [getattr(WorkflowSteps, c) for c in allowed]
+    #         step_stmt = select(*cols).where(WorkflowSteps.process_id == process.process_id)
+    #         steps = db.execute(step_stmt).all()
+
+    return donors

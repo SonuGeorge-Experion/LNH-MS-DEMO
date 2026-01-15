@@ -15,7 +15,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Enum
 
 from app.db.base_class import Base
@@ -65,9 +65,9 @@ class Processes(Base):
     start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     end_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
-    # donor: Mapped[Optional["Donors"]] = relationship(
-    #     "Donors", back_populates="processes"
-    # )
+    donor: Mapped[Optional["Donors"]] = relationship(
+        "Donors", back_populates="processes"
+    )
     # plan: Mapped[Optional["ProductionPlans"]] = relationship(
     #     "ProductionPlans", back_populates="processes"
     # )
@@ -77,9 +77,9 @@ class Processes(Base):
     # tissue: Mapped[Optional["Tissues"]] = relationship(
     #     "Tissues", back_populates="processes"
     # )
-    # workflow: Mapped[Optional["Workflows"]] = relationship(
-    #     "Workflows", back_populates="processes"
-    # )
+    workflow: Mapped[Optional["Workflows"]] = relationship(
+        "Workflows", back_populates="processes"
+    )
     # room_assignments: Mapped[Optional["RoomAssignments"]] = relationship(
     #     "RoomAssignments",
     #     uselist=False,
@@ -92,9 +92,9 @@ class Processes(Base):
     # verifications: Mapped[list["Verifications"]] = relationship(
     #     "Verifications", back_populates="process"
     # )
-    # workflow_steps: Mapped[list["WorkflowSteps"]] = relationship(
-    #     "WorkflowSteps", back_populates="process"
-    # )
+    workflow_steps: Mapped[list["WorkflowSteps"]] = relationship(
+        "WorkflowSteps", back_populates="process"
+    )
 
 
 class ProcessComments(Base):
@@ -171,9 +171,9 @@ class Workflows(Base):
         Boolean, server_default=text("true")
     )
 
-    # processes: Mapped[list["Processes"]] = relationship(
-    #     "Processes", back_populates="workflow"
-    # )
+    processes: Mapped[list["Processes"]] = relationship(
+        "Processes", back_populates="workflow"
+    )
     # category: Mapped[Optional["TissueCategories"]] = relationship(
     #     "TissueCategories", back_populates="workflows"
     # )
@@ -214,6 +214,6 @@ class WorkflowSteps(Base):
     )
     completed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
-    # process: Mapped[Optional["Processes"]] = relationship(
-    #     "Processes", back_populates="workflow_steps"
-    # )
+    process: Mapped[Optional["Processes"]] = relationship(
+        "Processes", back_populates="workflow_steps"
+    )
