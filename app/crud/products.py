@@ -117,3 +117,36 @@ async def get_tissues_list(
         tissues_data.append(data)
         
     return tissues_data
+
+async def get_products_list(
+    db: AsyncSession,
+    category_ids: Optional[List[int]] = None,
+    skip: int = 0,
+    limit: int = 10,
+):
+    query = select(
+        Products,
+        TissueCategories.name.label("category_name")
+    ).join(TissueCategories, Products.category_id == TissueCategories.category_id)
+
+    filters = []
+    if category_ids:
+        filters.append(Products.category_id.in_(category_ids))
+
+    if filters:
+        query = query.where(and_(*filters))
+
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+
+    rows = result.all()
+    products_data = []
+    for row in rows:
+        product_obj = row[0]
+        data = {
+            **product_obj.__dict__,
+            "category_name": row.category_name,
+        }
+        products_data.append(data)
+
+    return products_data

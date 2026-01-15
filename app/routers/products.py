@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # from app.crud.products import Tissues as crud_tissues
 from app.crud import products as product_crud
 from app.db.async_session import get_async_db
-from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema, ListTissuesSchema, TissueStatus
+from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema, ListTissuesSchema, TissueStatus, ListProductsSchema
 from typing import List, Optional, Annotated
 from datetime import datetime
 
@@ -118,4 +118,29 @@ async def read_tissues(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching tissues: {str(e)}"
+        )
+
+@router.get(
+    "/products",
+    response_model=List[ListProductsSchema],
+    status_code=status.HTTP_200_OK,
+)
+async def list_products(
+    category_ids: Optional[List[int]] = Query(None, description="Filter by multiple category IDs"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1),
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        products = await product_crud.get_products_list(
+            db,
+            category_ids=category_ids,
+            skip=skip,
+            limit=limit,
+        )
+        return products
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching products: {str(e)}",
         )
