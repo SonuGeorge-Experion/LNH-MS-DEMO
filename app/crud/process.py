@@ -1,12 +1,20 @@
+from typing import List
+
 from sqlalchemy import Integer, case, cast, func, select, true
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, joinedload, load_only, selectinload
 
 from app.db.models.donor import Donors
 from app.db.models.process import Processes, Workflows, WorkflowSteps
 from app.db.models.products import Tissues
-from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import (
+    ProcessSchema,
+    WorkflowSchema,
+    WorkflowStepIn,
+    WorkflowStepsSchema,
+)
 
 
 async def create_process(request: ProcessSchema, db: AsyncSession):
@@ -38,6 +46,64 @@ async def create_workflow_steps(request: WorkflowStepsSchema, db: AsyncSession):
     await db.commit()
     await db.refresh(workflow_steps)
     return workflow_steps
+
+
+from sqlalchemy import case
+from sqlalchemy.dialects.postgresql import insert
+
+
+async def upsert_workflow_steps(steps: List[WorkflowStepIn], db):
+    stmt = insert(WorkflowSteps).values([step.model_dump() for step in steps])
+
+    update_cols = {
+        # c.name: stmt.excluded[c.name]
+        c.name: case((stmt.excluded[c.name] != None, stmt.excluded[c.name]), else_=c)
+        for c in WorkflowSteps.__table__.columns
+        if c.name not in ("step_id", "process_id", "step_num")
+    }
+
+    # conditions = None
+    # for col_name in update_cols.keys():
+    #     print("col_name::", col_name)
+    #     col_condition = stmt.excluded[col_name].isnot(None)
+    #     conditions = col_condition if conditions is None else conditions | col_condition
+
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["step_id"],
+        set_=update_cols,
+        # where=conditions
+    )
+    await db.execute(stmt)
+    await db.commit()
+
+
+def bulk_upsert_workflow_steps(steps, db):
+    for step in steps:
+        data = step.model_dump()
+
+        # Build update dict dynamically
+        update_cols = {
+            key: value
+            for key, value in data.items()
+            if key not in ("step_id", "process_id", "step_num")  # skip identifiers
+            and value is not None  # skip None
+        }
+
+        stmt = (
+            insert(WorkflowSteps)
+            .values(data)
+            .on_conflict_do_update(
+                index_elements=["process_id", "step_num"], set_=update_cols
+            )
+        )
+    db.execute(stmt)
+    db.commit()
+
+
+async def bulk_insert_workflow_steps(steps: List[WorkflowStepIn], db):
+    stmt = insert(WorkflowSteps).values([step.model_dump() for step in steps])
+    await db.execute(stmt)
+    await db.commit()
 
 
 # select w.name as workflow_name, step_element from workflows as w

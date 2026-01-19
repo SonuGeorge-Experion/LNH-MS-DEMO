@@ -6,7 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import process as process_crud
 from app.db.async_session import get_async_db
-from app.schemas.process import ProcessSchema, WorkflowSchema, WorkflowStepsSchema
+from app.schemas.process import (
+    ProcessSchema,
+    WorkflowListStepsSchema,
+    WorkflowSchema,
+    WorkflowStepsSchema,
+)
 
 router = APIRouter()
 
@@ -81,6 +86,26 @@ async def populate_workflow_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal Error Occurred. Please try later. {e}",
         )
+
+
+@router.post("/bulk/workflow-steps/", status_code=status.HTTP_201_CREATED)
+async def bulk_populate_workflow_data(
+    request: WorkflowListStepsSchema,
+    db: AsyncSession = Depends(get_async_db),
+):
+
+    await process_crud.upsert_workflow_steps(request.steps, db)
+    # await process_crud.bulk_insert_workflow_steps(request.steps, db)
+    return {"resp": "Workflow steps created"}
+
+    # try:
+    #     await process_crud.upsert_workflow_steps(request.steps, db)
+    #     return {"resp": "Workflow steps created"}
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail=f"Internal Error Occurred. Please try later. {e}",
+    #     )
 
 
 @router.get(

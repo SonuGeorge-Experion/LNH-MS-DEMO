@@ -28,7 +28,6 @@ async def populate_production_process(
     Step 3a: Populate workflow id based on tissue category
     """
     try:
-        print("Get details--------------")
         rows = await get_donor_production_plan_with_workflow(donor_id, db)
         return rows
     except Exception as e:
