@@ -32,5 +32,7 @@ class Donors(Base):
         DateTime, server_default=text("CURRENT_TIMESTAMP")
     )
 
-    # processes: Mapped[list['Processes']] = relationship('Processes', back_populates='donor')
+    processes: Mapped[list["Processes"]] = relationship(
+        "Processes", back_populates="donor"
+    )
     # tissues: Mapped[list['Tissues']] = relationship('Tissues', back_populates='donor')

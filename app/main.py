@@ -25,10 +25,9 @@ app.include_router(process.router, prefix="/process", tags=["Tissue Process"])
 app.include_router(
     production_plan.router, prefix="/production", tags=["Production Plan"]
 )
-app.include_router(products.router, prefix="/tissue_category", tags=["Tissue_Category"])
 app.include_router(
     production_process.router, prefix="/production-process", tags=["Production Process"]
 )
 app.include_router(products.router, prefix="/products", tags=["Products"])
-app.include_router(resources.router, prefix="/resources", tags=["Resources"])
 app.include_router(clean_room.router, prefix="/api/v1/rooms", tags=["Clean Rooms"])
+app.include_router(resources.router, prefix="/api/v1/resources", tags=["Resources"])

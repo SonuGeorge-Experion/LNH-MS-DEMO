@@ -94,3 +94,14 @@ async def get_workflow_for_process(
 
     workflow_steps = await process_crud.get_process_based_workflow(process_id, db)
     return workflow_steps
+
+
+@router.get(
+    "/room-donor-workflow/",
+    status_code=status.HTTP_200_OK,
+)
+async def get_room_based_workflow(
+    room_id: int, db: AsyncSession = Depends(get_async_db)
+):
+    result = await process_crud.get_process_template(db)
+    return result
