@@ -112,3 +112,37 @@ async def get_donor_production_plan_with_workflow(donor_id: int, db: AsyncSessio
     # rows = result.mappings().all()
     # print(rows)
     return {"db: success"}
+
+
+async def list_production_plans(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 100,
+    status: str = None,
+    donor_ids: list[int] = None,
+):
+    from app.db.models.products import Products, TissueCategories, Tissues  # Avoid circular import if any
+
+    stmt = (
+        select(
+            *ProductionPlans.__table__.c,
+            Products.name.label("product_name"),
+            Products.base_dimensions.label("product_base_dimensions"),
+            TissueCategories.name.label("category_name"),
+            Tissues.bundle_details["type"].astext.label("tissue_type"),
+        )
+        .join(Products, ProductionPlans.product_id == Products.product_id)
+        .join(TissueCategories, Products.category_id == TissueCategories.category_id)
+        .join(Tissues, ProductionPlans.tissue_id == Tissues.tissue_id)
+    )
+
+    if status:
+        stmt = stmt.where(ProductionPlans.status == status)
+
+    if donor_ids:
+        stmt = stmt.where(Tissues.donor_id.in_(donor_ids))
+
+    stmt = stmt.offset(skip).limit(limit)
+
+    result = await db.execute(stmt)
+    return result.mappings().all()
