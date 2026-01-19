@@ -23,7 +23,7 @@ app = FastAPI()
 app.include_router(donor.router, prefix="/donor", tags=["Donor"])
 app.include_router(process.router, prefix="/process", tags=["Tissue Process"])
 app.include_router(
-    production_plan.router, prefix="/production", tags=["Production Plan"]
+    production_plan.router, prefix="/api/v1/production", tags=["Production Plan"]
 )
 app.include_router(
     production_process.router, prefix="/production-process", tags=["Production Process"]

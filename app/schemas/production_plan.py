@@ -18,3 +18,11 @@ class ProductionPlanSchema(BaseModel):
     model_config = {
         "from_attributes": True,  # allows ORM mode in Pydantic v2
     }
+
+
+class ProductionPlanSchemaOut(ProductionPlanSchema):
+    plan_id: int = Field(..., description="Unique identifier for the plan")
+    product_name: Optional[str] = Field(None, description="Name of the product")
+    product_base_dimensions: Optional[dict] = Field(None, description="Base dimensions of the product")
+    category_name: Optional[str] = Field(None, description="Name of the tissue category")
+    tissue_type: Optional[str] = Field(None, description="Type of tissue from bundle details")
