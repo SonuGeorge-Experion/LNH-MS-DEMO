@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.process import Processes, Workflows
 from app.db.models.production_plan import ProductionPlans
-from app.db.models.products import Tissues
+from app.db.models.products import Tissues, Products, TissueCategories
 from app.schemas.production_plan import ProductionPlanSchema
 
 
@@ -121,7 +121,7 @@ async def list_production_plans(
     status: str = None,
     donor_ids: list[int] = None,
 ):
-    from app.db.models.products import Products, TissueCategories, Tissues  # Avoid circular import if any
+
 
     stmt = (
         select(
