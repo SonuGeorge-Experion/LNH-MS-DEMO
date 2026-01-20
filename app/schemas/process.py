@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -10,7 +10,9 @@ class ProcessSchema(BaseModel):
     workflow_id: Optional[int] = None
     donor_id: Optional[int] = None
     tissue_id: Optional[int] = None
-    status: Optional[Literal["planned", "in_progress", "completed", "deviated"]] = "planned"
+    status: Optional[Literal["planned", "in_progress", "completed", "deviated"]] = (
+        "planned"
+    )
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
 
@@ -76,3 +78,27 @@ class WorkflowStepsSchema(BaseModel):
         return self
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class WorkflowStepIn(BaseModel):
+    step_id: Optional[int] = None
+    process_id: int
+    step_num: int
+    initials: Optional[str] = None
+    verified_by_initials: Optional[str] = None
+    spin_program: Optional[str] = None
+    spin_count: Optional[int] = None
+    actual_duration: Optional[str] = None
+    # temp_start: condecimal(max_digits=5, decimal_places=2) | None = None
+    temp_start: Decimal | None = Field(None, max_digits=5, decimal_places=2)
+    temp_stop: Decimal | None = Field(None, max_digits=5, decimal_places=2)
+    temp_compliant: Optional[bool] = None
+    na_performed: Optional[bool] = None
+    deviation_notes: Optional[str] = None
+    start_time: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    step_data: Optional[Dict] = None
+
+
+class WorkflowListStepsSchema(BaseModel):
+    steps: List[WorkflowStepIn]
