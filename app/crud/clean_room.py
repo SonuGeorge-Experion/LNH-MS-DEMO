@@ -1,12 +1,29 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, exists, select
+from sqlalchemy import func, exists, select, delete
 import re
 import asyncpg
 
 from app.schemas.clean_room import CleanRoomsSchema, ShiftsSchema, RoomAssignmentsSchema
 from app.db.models.clean_room import CleanRooms, RoomAssignments, Shifts
+
+
+async def fetch_by_id(id: int, db: AsyncSession, model, id_col_name: str = "id"):
+    id_column = getattr(model, id_col_name)
+    stmt = select(model).where(id_column == id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def col_duplicate(db: AsyncSession, param, check_value) -> bool:
+    if isinstance(check_value, int):
+        base_clause = param == check_value
+    else:
+        base_clause = func.lower(param) == check_value.lower()
+    exists_stmt = select(exists().where(base_clause))
+    is_duplicate = await db.scalar(exists_stmt)
+    return is_duplicate
 
 
 async def add_clean_room(request: CleanRoomsSchema, db: AsyncSession):
@@ -49,6 +66,20 @@ async def add_clean_room(request: CleanRoomsSchema, db: AsyncSession):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal Error Occurred. Please try later. {e}",
         )
+
+
+async def delete_clean_room(id: int, db: AsyncSession):
+    try:
+        room = await fetch_by_id(id, db, CleanRooms, "room_id")
+        if not room:
+            return False
+
+        await db.execute(delete(CleanRooms).where(CleanRooms.room_id == id))
+        await db.commit()
+        return True
+    except Exception:
+        await db.rollback()
+        raise
 
 
 async def add_room_assignments(request: RoomAssignmentsSchema, db: AsyncSession):
@@ -96,6 +127,22 @@ async def add_room_assignments(request: RoomAssignmentsSchema, db: AsyncSession)
         )
 
 
+async def delete_assignment(id, db):
+    try:
+        room = await fetch_by_id(id, db, RoomAssignments, "assignment_id")
+        if not room:
+            return False
+
+        await db.execute(
+            delete(RoomAssignments).where(RoomAssignments.assignment_id == id)
+        )
+        await db.commit()
+        return True
+    except Exception:
+        await db.rollback()
+        raise
+
+
 async def add_shift(request: ShiftsSchema, db: AsyncSession):
     try:
         shift = Shifts(**request.model_dump())
@@ -110,11 +157,15 @@ async def add_shift(request: ShiftsSchema, db: AsyncSession):
         )
 
 
-async def col_duplicate(db: AsyncSession, param, check_value) -> bool:
-    if isinstance(check_value, int):
-        base_clause = param == check_value
-    else:
-        base_clause = func.lower(param) == check_value.lower()
-    exists_stmt = select(exists().where(base_clause))
-    is_duplicate = await db.scalar(exists_stmt)
-    return is_duplicate
+async def delete_shift(id, db):
+    try:
+        room = await fetch_by_id(id, db, Shifts, "shift_id")
+        if not room:
+            return False
+
+        await db.execute(delete(Shifts).where(Shifts.shift_id == id))
+        await db.commit()
+        return True
+    except Exception:
+        await db.rollback()
+        raise
