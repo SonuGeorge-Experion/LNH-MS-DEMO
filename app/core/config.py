@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     db_driver: str = "psycopg2"
     async_driver: str = "asyncpg"
 
+    ENTRA_TENANT_ID: str
+    ENTRA_ISSUER: str               # https://login.microsoftonline.com/{tenant_id}/v2.0
+    ENTRA_AUDIENCE: str             # API App ID URI or client_id
+    ENTRA_JWKS_URL: str             # https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys
+    ENTRA_SCOPE: str
+
     model_config = ConfigDict(env_file=".env")
 
     @property
