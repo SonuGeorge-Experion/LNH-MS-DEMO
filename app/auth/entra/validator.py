@@ -1,5 +1,5 @@
 from jose import jwt, JWTError
-from auth.entra.jwks import get_jwks
+from app.auth.entra.jwks import get_jwks
 from app.core.config import settings
 
 class EntraTokenError(Exception):
