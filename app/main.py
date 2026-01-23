@@ -10,6 +10,7 @@ from app.routers import (
     products,
     resources,
     clean_room,
+    auth
 )
 
 
@@ -31,3 +32,4 @@ app.include_router(
 app.include_router(products.router, prefix="/products", tags=["Products"])
 app.include_router(clean_room.router, prefix="/api/v1/rooms", tags=["Clean Rooms"])
 app.include_router(resources.router, prefix="/api/v1/resources", tags=["Resources"])
+app.include_router(auth.router,prefix="/api/v1/auth", tags=["Auth"])

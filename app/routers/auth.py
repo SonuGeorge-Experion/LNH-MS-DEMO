@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Header, HTTPException
-from auth.entra.validator import validate_entra_token, EntraTokenError
+from fastapi import Depends, APIRouter, Header, HTTPException
+from app.auth.entra.validator import validate_entra_token, EntraTokenError
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer(auto_error=True)
+
 
 router = APIRouter()
 
-@router.post("/auth/bootstrap")
-def bootstrap(authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing bearer token")
-
-    token = authorization.split(" ", 1)[1]
+@router.post("/bootstrap")
+def bootstrap(
+    creds: HTTPAuthorizationCredentials = Depends(security)
+    ):
+    token = creds.credentials
 
     try:
         entra_identity = validate_entra_token(token)
