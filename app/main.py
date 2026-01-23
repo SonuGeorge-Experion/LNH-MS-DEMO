@@ -11,6 +11,7 @@ from app.routers import (
     resources,
     clean_room,
     auth
+    auth
 )
 
 
