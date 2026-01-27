@@ -5,7 +5,7 @@ from app.core.config import settings
 def create_access_token(data: dict) -> str:
     payload = data.copy()
     payload["exp"] = datetime.utcnow() + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     payload["type"] = "access"
 
@@ -18,11 +18,11 @@ def create_access_token(data: dict) -> str:
 
 def create_refresh_token(data: dict) -> str:
     payload = data.copy()
-    payload["exp"] = datetime.utcnow() + timedelta(days=7)
+    payload["exp"] = datetime.utcnow() + timedelta(minutes=3)
     payload["type"] = "refresh"
 
     return jwt.encode(
         payload,
-        settings.SECRET_KEY,
+        settings.REFRESH_SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )

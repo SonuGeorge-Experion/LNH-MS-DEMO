@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import resources as resources_crud
 from app.db.async_session import get_async_db
+from app.dependencies.auth import require_roles
 from app.schemas.resources import MaterialSchema, MaterialSchemaOut, MaterialSchemaCreate, MachineSchemaCreate, MachineSchemaOut, MachineSchema
 
 router = APIRouter()
@@ -65,6 +66,7 @@ async def create_machine(
 async def list_machines(
     offset: int = Query(0, ge=0),
     limit: int = Query(5, ge=1, le=100),
+    current_user = Depends(require_roles("LNH-API-Role-User1")),
     db: AsyncSession = Depends(get_async_db),
 ):
     try:

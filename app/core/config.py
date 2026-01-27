@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = "your_secret_key"  # ideally from .env
     ALGORITHM: str = "HS256"
+    REFRESH_SECRET_KEY: str = "refrest_secret_key"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     db_user: str

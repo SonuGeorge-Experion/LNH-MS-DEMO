@@ -32,11 +32,13 @@ def validate_entra_token(token: str) -> dict:
             raise EntraTokenError(f"Missing claim: {claim}")
     print("hi")
     print(claims)
+    print(claims.keys())
 
     return {
         "entra_oid": claims["oid"],
         "entra_tid": claims["tid"],
         "entra_aud": claims["aud"],
         "entra_scp": claims["scp"],
-        "email": claims.get("preferred_username") or claims.get("upn"),
+        "entra_roles": claims["roles"],
+        "user_name": claims["preferred_username"],
     }
