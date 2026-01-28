@@ -5,7 +5,12 @@ from sqlalchemy import func, exists, select, delete
 import re
 import asyncpg
 
-from app.schemas.clean_room import CleanRoomsSchema, ShiftsSchema, RoomAssignmentsSchema
+from app.schemas.clean_room import (
+    CleanRoomsSchema,
+    CleanRoomsUpdateSchema,
+    ShiftsSchema,
+    RoomAssignmentsSchema,
+)
 from app.db.models.clean_room import CleanRooms, RoomAssignments, Shifts
 
 
@@ -68,6 +73,23 @@ async def add_clean_room(request: CleanRoomsSchema, db: AsyncSession):
         )
 
 
+async def update_clean_room(id: int, request: CleanRoomsUpdateSchema, db: AsyncSession):
+    try:
+        room_details = await fetch_by_id(id, db, CleanRooms, "room_id")
+        if not room_details:
+            return None
+        update_room_dict = request.model_dump(exclude_unset=True)
+        for key, value in update_room_dict.items():
+            if value is not None:
+                setattr(room_details, key, value)
+        await db.commit()
+        await db.refresh(room_details)
+        return room_details
+    except Exception as e:
+        await db.rollback()
+        raise e
+
+
 async def delete_clean_room(id: int, db: AsyncSession):
     try:
         room = await fetch_by_id(id, db, CleanRooms, "room_id")
@@ -127,6 +149,25 @@ async def add_room_assignments(request: RoomAssignmentsSchema, db: AsyncSession)
         )
 
 
+async def update_room_assignment(
+    id: int, request: RoomAssignmentsSchema, db: AsyncSession
+):
+    try:
+        room_details = await fetch_by_id(id, db, RoomAssignments, "assignment_id")
+        if not room_details:
+            return None
+        update_room_dict = request.model_dump(exclude_unset=True)
+        for key, value in update_room_dict.items():
+            if value is not None:
+                setattr(room_details, key, value)
+        await db.commit()
+        await db.refresh(room_details)
+        return room_details
+    except Exception as e:
+        await db.rollback()
+        raise e
+
+
 async def delete_assignment(id, db):
     try:
         room = await fetch_by_id(id, db, RoomAssignments, "assignment_id")
@@ -155,6 +196,23 @@ async def add_shift(request: ShiftsSchema, db: AsyncSession):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal Error Occurred. Please try later. {e}",
         )
+
+
+async def update_shift(id: int, request: ShiftsSchema, db: AsyncSession):
+    try:
+        shift_details = await fetch_by_id(id, db, Shifts, "shift_id")
+        if not shift_details:
+            return None
+        update_shift_dict = request.model_dump(exclude_unset=True)
+        for key, value in update_shift_dict.items():
+            if value is not None:
+                setattr(shift_details, key, value)
+        await db.commit()
+        await db.refresh(shift_details)
+        return shift_details
+    except Exception as e:
+        await db.rollback()
+        raise e
 
 
 async def delete_shift(id, db):
