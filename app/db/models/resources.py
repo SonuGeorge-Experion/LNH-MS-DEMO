@@ -1,3 +1,4 @@
+import enum
 from typing import Optional
 
 from sqlalchemy import (
@@ -15,6 +16,14 @@ from sqlalchemy.types import Enum
 
 from app.db.base_class import Base
 
+class MachineTypeEnum(str, enum.Enum):
+    centrifuge = "centrifuge"
+    ultrasonic = "ultrasonic"
+
+class MachineStatusEnum(str, enum.Enum):
+    available = "available"
+    in_use = "in_use"
+    maintenance = "maintenance"
 
 class Machines(Base):
     __tablename__ = "machines"

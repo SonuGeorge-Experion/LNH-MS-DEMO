@@ -2,6 +2,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from app.db.models.products import TissueCategories, Tissues, Products
 from app.schemas.products import TissueCategorySchema, TissuesSchema, ProductsSchema
+from app.db.models.donor import Donors
+from sqlalchemy import and_, cast, String, select
+from typing import Optional, List
+from datetime import datetime
 
 async def add_tissue_category(db: AsyncSession, request:TissueCategorySchema):
     new_tissue_category = TissueCategories(
@@ -54,3 +58,95 @@ async def add_product(db: AsyncSession, request: ProductsSchema):
 
     await db.refresh(new_product)
     return new_product
+
+async def get_tissues_list(
+    db: AsyncSession,
+    donor_ids: Optional[List[int]] = None,
+    statuses: Optional[List[str]] = None,
+    donor_search: Optional[str] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    skip: int = 0,
+    limit: int = 10
+):
+    query = select(
+        Tissues,
+        Donors.name.label("donor_name"),
+        Donors.znumber.label("znumber"),
+        TissueCategories.name.label("category_name")
+    ).join(Donors, Tissues.donor_id == Donors.donor_id
+    ).join(TissueCategories, Tissues.category_id == TissueCategories.category_id)
+
+    filters = []
+
+    # 1. Checkbox Filter: Multiple Donor IDs
+    if donor_ids:
+        filters.append(Tissues.donor_id.in_(donor_ids))
+
+    # 2. Checkbox Filter: Multiple Statuses
+    if statuses:
+        filters.append(Tissues.status.in_(statuses))
+
+    # 3. Search Functionality: Donor ID (partial match as string)
+    if donor_search:
+        filters.append(cast(Tissues.donor_id, String).ilike(f"%{donor_search}%"))
+
+    # 4. Date Range Filter
+    if start_date:
+        filters.append(Tissues.created_at >= start_date)
+    if end_date:
+        filters.append(Tissues.created_at <= end_date)
+
+    if filters:
+        query = query.where(and_(*filters))
+
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+    
+    # Process results to combine Join data into the response
+    rows = result.all()
+    tissues_data = []
+    for row in rows:
+        tissue_obj = row[0] # The Tissues model instance
+        data = {
+            **tissue_obj.__dict__,
+            "donor_name": row.donor_name,
+            "znumber": row.znumber,
+            "category_name": row.category_name
+        }
+        tissues_data.append(data)
+        
+    return tissues_data
+
+async def get_products_list(
+    db: AsyncSession,
+    category_ids: Optional[List[int]] = None,
+    skip: int = 0,
+    limit: int = 10,
+):
+    query = select(
+        Products,
+        TissueCategories.name.label("category_name")
+    ).join(TissueCategories, Products.category_id == TissueCategories.category_id)
+
+    filters = []
+    if category_ids:
+        filters.append(Products.category_id.in_(category_ids))
+
+    if filters:
+        query = query.where(and_(*filters))
+
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+
+    rows = result.all()
+    products_data = []
+    for row in rows:
+        product_obj = row[0]
+        data = {
+            **product_obj.__dict__,
+            "category_name": row.category_name,
+        }
+        products_data.append(data)
+
+    return products_data
