@@ -69,7 +69,7 @@ class CleanRoomsUpdateSchema(CleanRoomsSchema):
         return v
 
 
-class CleanRoomsUpdateRespSchema(CleanRoomsSchema):
+class CleanRoomsRespSchema(CleanRoomsSchema):
     room_id: int
 
 
@@ -101,5 +101,5 @@ class ShiftsSchema(BaseModel):
     end_time: time = None
 
 
-class ShiftsUpdateRespSchema(ShiftsSchema):
+class ShiftsRespSchema(ShiftsSchema):
     shift_id: int

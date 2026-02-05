@@ -1,13 +1,14 @@
-from fastapi import APIRouter, status, Depends, Body, HTTPException, Response
+from typing import List
+from fastapi import APIRouter, status, Depends, Body, HTTPException, Response, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from app.db.async_session import get_async_db
 from app.schemas.clean_room import (
     CleanRoomsSchema,
     CleanRoomsUpdateSchema,
-    CleanRoomsUpdateRespSchema,
+    CleanRoomsRespSchema,
     ShiftsSchema,
-    ShiftsUpdateRespSchema,
+    ShiftsRespSchema,
     RoomAssignmentsSchema,
     RoomAssignmentsRespSchema,
     CleanRoomsCreateResp,
@@ -42,9 +43,54 @@ async def add_clean_rooms(
     return cleanrooms
 
 
+@router.get(
+    "/clean/{room_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Obtains Clean Room details.",
+    description="Obtains Clean Room details by ID",
+    response_model=CleanRoomsRespSchema,
+)
+async def get_clean_room(room_id: int, db: AsyncSession = Depends(get_async_db)):
+    try:
+        room_details = await room_crud.get_clean_room_by_id(room_id, db)
+        if not room_details:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Clean Room ID: {room_id} not found",
+            )
+        return room_details
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Error Occurred. Please try later.",
+        )
+
+
+@router.get(
+    "/clean",
+    status_code=status.HTTP_200_OK,
+    response_model=List[CleanRoomsRespSchema],
+)
+async def list_clean_rooms(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(5, ge=1, le=100),
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        clean_rooms = await room_crud.list_clean_rooms(db, offset=offset, limit=limit)
+        return clean_rooms
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
+
+
 @router.patch(
     "/clean/{room_id}",
-    response_model=CleanRoomsUpdateRespSchema,
+    response_model=CleanRoomsRespSchema,
     summary="Update Clean Room Details",
     responses={200: {"description": "Clean Room updated successfully."}},
 )
@@ -121,6 +167,53 @@ async def add_room_assignments(
 ):
     cleanrooms = await room_crud.add_room_assignments(request, db)
     return cleanrooms
+
+
+@router.get(
+    "/assignment/{assignment_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Obtains Room Assignment details.",
+    description="Obtains Room Assignment details by ID",
+    response_model=RoomAssignmentsRespSchema,
+)
+async def get_room_assignment(room_id: int, db: AsyncSession = Depends(get_async_db)):
+    try:
+        room_details = await room_crud.get_room_assignments_by_id(room_id, db)
+        if not room_details:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Room Assignment ID: {room_id} not found",
+            )
+        return room_details
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Error Occurred. Please try later.",
+        )
+
+
+@router.get(
+    "/assignment",
+    status_code=status.HTTP_200_OK,
+    response_model=List[RoomAssignmentsRespSchema],
+)
+async def list_room_assignments(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(5, ge=1, le=100),
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        room_assignments = await room_crud.list_room_assignments(
+            db, offset=offset, limit=limit
+        )
+        return room_assignments
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
 
 
 @router.patch(
@@ -214,13 +307,58 @@ async def add_shift(
     request: ShiftsSchema = Body(example=sampleAddShift),
     db: AsyncSession = Depends(get_async_db),
 ):
-    cleanrooms = await room_crud.add_shift(request, db)
-    return cleanrooms
+    shift = await room_crud.add_shift(request, db)
+    return shift
+
+
+@router.get(
+    "/shift/{shift_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Obtains Shift details.",
+    description="Obtains Shift details by ID",
+    response_model=ShiftsRespSchema,
+)
+async def get_shift(shift_id: int, db: AsyncSession = Depends(get_async_db)):
+    try:
+        shift_details = await room_crud.get_shift_by_id(shift_id, db)
+        if not shift_details:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Shift ID: {shift_id} not found",
+            )
+        return shift_details
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Error Occurred. Please try later.",
+        )
+
+
+@router.get(
+    "/shift",
+    status_code=status.HTTP_200_OK,
+    response_model=List[ShiftsRespSchema],
+)
+async def list_shift(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(5, ge=1, le=100),
+    db: AsyncSession = Depends(get_async_db),
+):
+    try:
+        shift = await room_crud.list_shift(db, offset=offset, limit=limit)
+        return shift
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Error Occurred. Please try later. {e}",
+        )
 
 
 @router.patch(
     "/shift/{shift_id}",
-    response_model=ShiftsUpdateRespSchema,
+    response_model=ShiftsRespSchema,
     summary="Update Shift Details",
     responses={200: {"description": "Shift updated successfully."}},
 )
