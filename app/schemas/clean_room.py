@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import enum
 from datetime import datetime, date, time
@@ -19,8 +19,8 @@ sampleAddRoomAssignment = {
     "technician_count": 0,
     "status": "pending",
     "target_date": "2026-01-08",
-    "queue_sequence": "",
-    "download_status": "",
+    "queue_sequence": None,
+    "download_status": None,
 }
 
 sampleAddShift = {
@@ -56,6 +56,22 @@ class CleanRoomsSchema(BaseModel):
     max_technicians: Optional[int] = 4
     is_active: Optional[bool] = True
 
+    class Config:
+        from_attributes = True
+
+
+class CleanRoomsUpdateSchema(CleanRoomsSchema):
+    @field_validator("serial_number")
+    @classmethod
+    def validate_serial_num(cls, v: int):
+        if v is not None and not (1 <= v <= 10):
+            raise ValueError("Serial Number must be between 1 and 10")
+        return v
+
+
+class CleanRoomsRespSchema(CleanRoomsSchema):
+    room_id: int
+
 
 class CleanRoomsCreateResp(CleanRoomsSchema):
     room_id: int
@@ -74,8 +90,16 @@ class RoomAssignmentsSchema(BaseModel):
     download_status: Optional[str] = Field("pending", max_length=20)
 
 
+class RoomAssignmentsRespSchema(RoomAssignmentsSchema):
+    assignment_id: int
+
+
 class ShiftsSchema(BaseModel):
     # shift_id: int
     name: str = Field(..., max_length=50)
     start_time: time = None
     end_time: time = None
+
+
+class ShiftsRespSchema(ShiftsSchema):
+    shift_id: int
